@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Specialist Dashboard</title>
+    <style>
+      :root {
+        --primary: #00b09b;
+        --secondary: #96c93d;
+        --text: #2c3e50;
+        --background: #f0f4f8;
+        --white: #ffffff;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --table-border: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      .dashboard-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px var(--shadow);
+        width: 100%;
+        max-width: 1000px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      h1 {
+        color: var(--text);
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      h3 {
+        color: var(--text);
+        font-size: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+
+      .logs-container {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin: 2rem 0;
+        box-shadow: 0 4px 6px var(--shadow);
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        background: var(--white);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid var(--table-border);
+      }
+
+      th {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: var(--white);
+        font-weight: 600;
+      }
+
+      td img {
+        border-radius: 8px;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+      }
+
+      td img:hover {
+        transform: scale(1.1);
+      }
+
+      .no-predictions {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text);
+        font-style: italic;
+        background: var(--background);
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+
+      .logout {
+        display: inline-block;
+        color: var(--text);
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+      }
+
+      .logout:hover {
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      .contact-btn {
+        background: linear-gradient(135deg, var(--secondary), var(--primary));
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 1rem;
+        display: inline-block;
+        margin-top: 0.5rem;
+        transition: transform 0.2s ease;
+      }
+
+      .contact-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(150, 201, 61, 0.2);
+      }
+
+      #searchInput {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+
+      .csv-btn {
+        background: var(--primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        margin: 0 0 1rem 0.5rem;
+      }
+
+      @media (max-width: 640px) {
+        .dashboard-container {
+          padding: 1rem;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        h3 {
+          font-size: 1.3rem;
+        }
+
+        th,
+        td {
+          padding: 0.75rem;
+        }
+
+        td img {
+          width: 80px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <h1>Welcome, Specialist 🩺</h1>
+      <h3>Prediction Logs</h3>
+
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search prediction..."
+        onkeyup="filterTable()"
+      />
+      <button class="csv-btn" onclick="exportLogs()">Download CSV</button>
+
+      <div class="logs-container">
+        {% if logs %}
+        <table>
+          <tr>
+            <th>Image</th>
+            <th>Prediction</th>
+            <th>Confidence</th>
+            <th>Notes</th>
+            <th>Contact</th>
+          </tr>
+          {% for log in logs %}
+          <tr>
+            <td>
+              <img
+                src="{{ url_for('static', filename='uploads/' + log.filename) }}"
+                width="100"
+                alt="Uploaded image"
+              />
+            </td>
+            <td>{{ log.result }}</td>
+            <td>{{ log.confidence or '—' }}%</td>
+            <td>
+              <textarea
+                rows="2"
+                placeholder="Add notes..."
+                style="width: 100%; border-radius: 6px; padding: 0.5rem"
+              ></textarea>
+            </td>
+            <td>
+              <a
+                href="mailto:patient@example.com?subject=Regarding your prediction"
+                style="color: var(--primary); text-decoration: underline"
+                >Email</a
+              >
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div class="no-predictions">
+          <p>No predictions yet.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="text-align: center">
+        <a href="/logout" class="logout">Logout</a>
+        <div style="text-align: center; margin-top: 1.5rem">
+          <a href="/contact-patient" class="contact-btn">Contact Patient</a>
+        </div>
+        <div
+          style="
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 2rem;
+          "
+        >
+          <p>
+            <strong>Note:</strong> All data is confidential and should be
+            handled in accordance with HIPAA or equivalent regulations.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function filterTable() {
+        const input = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const rows = document.querySelectorAll("table tr:not(:first-child)");
+        rows.forEach((row) => {
+          const text = row.cells[1]?.textContent.toLowerCase();
+          row.style.display = text.includes(input) ? "" : "none";
+        });
+      }
+
+      function exportLogs() {
+        let csv = "Image,Prediction,Confidence\n";
+        document
+          .querySelectorAll("table tr:not(:first-child)")
+          .forEach((row) => {
+            const img = row.cells[0].querySelector("img")?.src.split("/").pop();
+            const pred = row.cells[1]?.textContent.trim();
+            const conf = row.cells[2]?.textContent.trim();
+            csv += `"${img}","${pred}","${conf}"\n`;
+          });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "logs.csv";
+        a.click();
+      }
+
+      let timeout;
+      function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          alert("You’ve been logged out due to inactivity.");
+          window.location.href = "/logout";
+        }, 5 * 60 * 1000);
+      }
+
+      window.onload = resetTimer;
+      window.onmousemove = resetTimer;
+      window.onkeypress = resetTimer;
+    </script>
+  </body>
+</html>
